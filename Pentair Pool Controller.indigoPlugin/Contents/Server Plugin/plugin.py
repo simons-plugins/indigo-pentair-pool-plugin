@@ -19,6 +19,7 @@ except ImportError:
 
 from handlers.body import process_body_message, build_set_setpoint_payload, build_set_heat_mode_payload
 from handlers.circuit import process_circuit_message, build_circuit_state_payload
+from handlers.pump import process_pump_message, build_set_speed_payload, build_set_program_payload
 
 
 class Plugin(indigo.PluginBase):
@@ -196,6 +197,8 @@ class Plugin(indigo.PluginBase):
                 self._process_body_updates(coordinator_dev_id, topic_parts, payload)
             elif subcategory == "circuits":
                 self._process_circuit_updates(coordinator_dev_id, topic_parts, payload)
+            elif subcategory == "pumps":
+                self._process_pump_updates(coordinator_dev_id, topic_parts, payload)
 
     def _process_body_updates(self, coordinator_dev_id, topic_parts, payload):
         updates = process_body_message(topic_parts, payload, self.logger)
@@ -216,6 +219,13 @@ class Plugin(indigo.PluginBase):
         updates = process_circuit_message(topic_parts, payload, self.logger)
         for circuit_id, state_updates in updates:
             target_dev = self._find_child_device(coordinator_dev_id, "poolCircuit", "circuitId", str(circuit_id))
+            if target_dev and state_updates:
+                target_dev.updateStatesOnServer(state_updates)
+
+    def _process_pump_updates(self, coordinator_dev_id, topic_parts, payload):
+        updates = process_pump_message(topic_parts, payload, self.logger)
+        for pump_id, state_updates in updates:
+            target_dev = self._find_child_device(coordinator_dev_id, "poolPump", "pumpId", str(pump_id))
             if target_dev and state_updates:
                 target_dev.updateStatesOnServer(state_updates)
 
@@ -266,6 +276,28 @@ class Plugin(indigo.PluginBase):
             new_state = not dev.onState
             payload = build_circuit_state_payload(circuit_id, new_state)
             self._publish(coordinator_id, "state/circuits/setState", payload)
+
+    # -------------------------------------------------------------------------
+    # Custom actions (pump)
+    # -------------------------------------------------------------------------
+
+    def setPumpSpeed(self, action):
+        dev = indigo.devices[action.deviceId]
+        coordinator_id = int(dev.pluginProps.get("controllerId", 0))
+        pump_id = dev.pluginProps.get("pumpId", "1")
+        rpm = action.props.get("rpm", 2400)
+        payload = build_set_speed_payload(pump_id, rpm)
+        self._publish(coordinator_id, "state/pumps/setSpeed", payload)
+        self.logger.info(f"Set {dev.name} speed to {rpm} RPM")
+
+    def setPumpProgram(self, action):
+        dev = indigo.devices[action.deviceId]
+        coordinator_id = int(dev.pluginProps.get("controllerId", 0))
+        pump_id = dev.pluginProps.get("pumpId", "1")
+        program = action.props.get("program", 1)
+        payload = build_set_program_payload(pump_id, program)
+        self._publish(coordinator_id, "state/pumps/setProgram", payload)
+        self.logger.info(f"Set {dev.name} to program {program}")
 
     # -------------------------------------------------------------------------
     # Helper: find child device

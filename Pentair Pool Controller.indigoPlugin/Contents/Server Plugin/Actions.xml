@@ -1,2 +1,34 @@
 <?xml version="1.0"?>
-<Actions/>
+<Actions>
+	<Action id="setPumpSpeed" deviceFilter="self.poolPump">
+		<Name>Set Pump Speed (RPM)</Name>
+		<CallbackMethod>setPumpSpeed</CallbackMethod>
+		<ConfigUI>
+			<Field id="speedLabel" type="label">
+				<Label>Set the pump speed in RPM.</Label>
+			</Field>
+			<Field type="textfield" id="rpm" defaultValue="2400">
+				<Label>RPM:</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+	<Action id="setPumpProgram" deviceFilter="self.poolPump">
+		<Name>Set Pump Program</Name>
+		<CallbackMethod>setPumpProgram</CallbackMethod>
+		<ConfigUI>
+			<Field id="programLabel" type="label">
+				<Label>Set the pump to a pre-configured speed program.</Label>
+			</Field>
+			<Field type="menu" id="program" defaultValue="1">
+				<Label>Program:</Label>
+				<List>
+					<Option value="1">Program 1</Option>
+					<Option value="2">Program 2</Option>
+					<Option value="3">Program 3</Option>
+					<Option value="4">Program 4</Option>
+				</List>
+			</Field>
+		</ConfigUI>
+	</Action>
+</Actions>

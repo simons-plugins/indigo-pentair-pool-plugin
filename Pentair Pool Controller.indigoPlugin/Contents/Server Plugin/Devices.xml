@@ -107,4 +107,51 @@
 			</State>
 		</States>
 	</Device>
+
+	<!-- Pool Pump — IntelliFlo variable-speed pump -->
+	<Device type="custom" id="poolPump" allowUserCreation="true">
+		<Name>Pool Pump</Name>
+		<ConfigUI>
+			<Field id="controllerId" type="menu">
+				<Label>Pool Controller:</Label>
+				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			</Field>
+			<Field id="pumpId" type="textfield" defaultValue="1">
+				<Label>Pump ID:</Label>
+			</Field>
+		</ConfigUI>
+		<UiDisplayStateId>rpm</UiDisplayStateId>
+		<States>
+			<State id="status">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Pump Status Changed</TriggerLabel>
+				<ControlPageLabel>Status</ControlPageLabel>
+			</State>
+			<State id="rpm">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>RPM Changed</TriggerLabel>
+				<ControlPageLabel>RPM</ControlPageLabel>
+			</State>
+			<State id="watts">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Watts Changed</TriggerLabel>
+				<ControlPageLabel>Watts</ControlPageLabel>
+			</State>
+			<State id="gpm">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Flow Rate Changed</TriggerLabel>
+				<ControlPageLabel>GPM</ControlPageLabel>
+			</State>
+			<State id="pumpType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Pump Type Changed</TriggerLabel>
+				<ControlPageLabel>Pump Type</ControlPageLabel>
+			</State>
+			<State id="program">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Program Changed</TriggerLabel>
+				<ControlPageLabel>Program</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
 </Devices>
