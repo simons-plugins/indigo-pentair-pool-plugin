@@ -31,4 +31,30 @@
 			</Field>
 		</ConfigUI>
 	</Action>
+
+	<Action id="setChlorinatorOutput" deviceFilter="self.poolChlorinator">
+		<Name>Set Chlorinator Output %</Name>
+		<CallbackMethod>setChlorinatorOutput</CallbackMethod>
+		<ConfigUI>
+			<Field id="outputLabel" type="label">
+				<Label>Set chlorination output percentage (0-100).</Label>
+			</Field>
+			<Field type="textfield" id="percent" defaultValue="50">
+				<Label>Output %:</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+	<Action id="setSuperChlorinate" deviceFilter="self.poolChlorinator">
+		<Name>Super Chlorinate</Name>
+		<CallbackMethod>setSuperChlorinate</CallbackMethod>
+		<ConfigUI>
+			<Field id="superLabel" type="label">
+				<Label>Enable or disable super chlorination.</Label>
+			</Field>
+			<Field type="checkbox" id="enabled" defaultValue="true">
+				<Label>Enable super chlorinate: </Label>
+			</Field>
+		</ConfigUI>
+	</Action>
 </Actions>

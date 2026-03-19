@@ -20,6 +20,7 @@ except ImportError:
 from handlers.body import process_body_message, build_set_setpoint_payload, build_set_heat_mode_payload
 from handlers.circuit import process_circuit_message, build_circuit_state_payload
 from handlers.pump import process_pump_message, build_set_speed_payload, build_set_program_payload
+from handlers.chlorinator import process_chlorinator_message, build_set_output_payload, build_super_chlorinate_payload
 
 
 class Plugin(indigo.PluginBase):
@@ -199,6 +200,8 @@ class Plugin(indigo.PluginBase):
                 self._process_circuit_updates(coordinator_dev_id, topic_parts, payload)
             elif subcategory == "pumps":
                 self._process_pump_updates(coordinator_dev_id, topic_parts, payload)
+            elif subcategory == "chlorinators":
+                self._process_chlorinator_updates(coordinator_dev_id, topic_parts, payload)
 
     def _process_body_updates(self, coordinator_dev_id, topic_parts, payload):
         updates = process_body_message(topic_parts, payload, self.logger)
@@ -226,6 +229,13 @@ class Plugin(indigo.PluginBase):
         updates = process_pump_message(topic_parts, payload, self.logger)
         for pump_id, state_updates in updates:
             target_dev = self._find_child_device(coordinator_dev_id, "poolPump", "pumpId", str(pump_id))
+            if target_dev and state_updates:
+                target_dev.updateStatesOnServer(state_updates)
+
+    def _process_chlorinator_updates(self, coordinator_dev_id, topic_parts, payload):
+        updates = process_chlorinator_message(topic_parts, payload, self.logger)
+        for chlor_id, state_updates in updates:
+            target_dev = self._find_child_device(coordinator_dev_id, "poolChlorinator", "chlorinatorId", str(chlor_id))
             if target_dev and state_updates:
                 target_dev.updateStatesOnServer(state_updates)
 
@@ -278,7 +288,7 @@ class Plugin(indigo.PluginBase):
             self._publish(coordinator_id, "state/circuits/setState", payload)
 
     # -------------------------------------------------------------------------
-    # Custom actions (pump)
+    # Custom actions (pump, chlorinator)
     # -------------------------------------------------------------------------
 
     def setPumpSpeed(self, action):
@@ -298,6 +308,24 @@ class Plugin(indigo.PluginBase):
         payload = build_set_program_payload(pump_id, program)
         self._publish(coordinator_id, "state/pumps/setProgram", payload)
         self.logger.info(f"Set {dev.name} to program {program}")
+
+    def setChlorinatorOutput(self, action):
+        dev = indigo.devices[action.deviceId]
+        coordinator_id = int(dev.pluginProps.get("controllerId", 0))
+        chlor_id = dev.pluginProps.get("chlorinatorId", "1")
+        percent = action.props.get("percent", 50)
+        payload = build_set_output_payload(chlor_id, percent)
+        self._publish(coordinator_id, "state/chlorinator", payload)
+        self.logger.info(f"Set {dev.name} output to {percent}%")
+
+    def setSuperChlorinate(self, action):
+        dev = indigo.devices[action.deviceId]
+        coordinator_id = int(dev.pluginProps.get("controllerId", 0))
+        chlor_id = dev.pluginProps.get("chlorinatorId", "1")
+        enabled = action.props.get("enabled", True)
+        payload = build_super_chlorinate_payload(chlor_id, enabled)
+        self._publish(coordinator_id, "state/chlorinator", payload)
+        self.logger.info(f"{'Enabled' if enabled else 'Disabled'} super chlorinate on {dev.name}")
 
     # -------------------------------------------------------------------------
     # Helper: find child device

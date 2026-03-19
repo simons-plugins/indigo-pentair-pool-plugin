@@ -154,4 +154,46 @@
 			</State>
 		</States>
 	</Device>
+
+	<!-- Pool Chlorinator — IntelliChlor salt chlorinator -->
+	<Device type="custom" id="poolChlorinator" allowUserCreation="true">
+		<Name>Pool Chlorinator</Name>
+		<ConfigUI>
+			<Field id="controllerId" type="menu">
+				<Label>Pool Controller:</Label>
+				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			</Field>
+			<Field id="chlorinatorId" type="textfield" defaultValue="1">
+				<Label>Chlorinator ID:</Label>
+			</Field>
+		</ConfigUI>
+		<UiDisplayStateId>saltPPM</UiDisplayStateId>
+		<States>
+			<State id="status">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Chlorinator Status Changed</TriggerLabel>
+				<ControlPageLabel>Status</ControlPageLabel>
+			</State>
+			<State id="saltPPM">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Salt Level Changed</TriggerLabel>
+				<ControlPageLabel>Salt (PPM)</ControlPageLabel>
+			</State>
+			<State id="outputPercent">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Output % Changed</TriggerLabel>
+				<ControlPageLabel>Output %</ControlPageLabel>
+			</State>
+			<State id="superChlorinate">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Super Chlorinate Changed</TriggerLabel>
+				<ControlPageLabel>Super Chlorinate</ControlPageLabel>
+			</State>
+			<State id="targetOutput">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Target Output Changed</TriggerLabel>
+				<ControlPageLabel>Target %</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
 </Devices>
