@@ -78,4 +78,33 @@
 			</State>
 		</States>
 	</Device>
+
+	<!-- Pool Circuit — relay on/off for equipment circuits -->
+	<Device type="relay" id="poolCircuit" allowUserCreation="true">
+		<Name>Pool Circuit</Name>
+		<ConfigUI>
+			<Field id="controllerId" type="menu">
+				<Label>Pool Controller:</Label>
+				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			</Field>
+			<Field id="circuitId" type="textfield" defaultValue="">
+				<Label>Circuit ID:</Label>
+			</Field>
+			<Field id="circuitIdHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
+				<Label>The circuit number from nodejs-poolController (e.g. 1, 2, 6).</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="circuitType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Circuit Type Changed</TriggerLabel>
+				<ControlPageLabel>Circuit Type</ControlPageLabel>
+			</State>
+			<State id="circuitFunction">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Circuit Function Changed</TriggerLabel>
+				<ControlPageLabel>Function</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
 </Devices>

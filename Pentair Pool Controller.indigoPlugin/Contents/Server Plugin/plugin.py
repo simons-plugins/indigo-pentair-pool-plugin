@@ -18,6 +18,7 @@ except ImportError:
     PAHO_AVAILABLE = False
 
 from handlers.body import process_body_message, build_set_setpoint_payload, build_set_heat_mode_payload
+from handlers.circuit import process_circuit_message, build_circuit_state_payload
 
 
 class Plugin(indigo.PluginBase):
@@ -193,6 +194,8 @@ class Plugin(indigo.PluginBase):
         if category == "state":
             if subcategory == "temps":
                 self._process_body_updates(coordinator_dev_id, topic_parts, payload)
+            elif subcategory == "circuits":
+                self._process_circuit_updates(coordinator_dev_id, topic_parts, payload)
 
     def _process_body_updates(self, coordinator_dev_id, topic_parts, payload):
         updates = process_body_message(topic_parts, payload, self.logger)
@@ -206,6 +209,13 @@ class Plugin(indigo.PluginBase):
                 continue
             body_id, state_updates = item
             target_dev = self._find_child_device(coordinator_dev_id, "poolBody", "bodyId", str(body_id))
+            if target_dev and state_updates:
+                target_dev.updateStatesOnServer(state_updates)
+
+    def _process_circuit_updates(self, coordinator_dev_id, topic_parts, payload):
+        updates = process_circuit_message(topic_parts, payload, self.logger)
+        for circuit_id, state_updates in updates:
+            target_dev = self._find_child_device(coordinator_dev_id, "poolCircuit", "circuitId", str(circuit_id))
             if target_dev and state_updates:
                 target_dev.updateStatesOnServer(state_updates)
 
@@ -234,6 +244,28 @@ class Plugin(indigo.PluginBase):
 
         elif action.thermostatAction == indigo.kThermostatAction.RequestStatusAll:
             self.logger.debug(f"Status request for {dev.name} — updated via MQTT")
+
+    # -------------------------------------------------------------------------
+    # Relay actions (circuits)
+    # -------------------------------------------------------------------------
+
+    def actionControlDevice(self, action, dev):
+        if dev.deviceTypeId != "poolCircuit":
+            return
+
+        coordinator_id = int(dev.pluginProps.get("controllerId", 0))
+        circuit_id = dev.pluginProps.get("circuitId", "")
+
+        if action.deviceAction == indigo.kDeviceAction.TurnOn:
+            payload = build_circuit_state_payload(circuit_id, True)
+            self._publish(coordinator_id, "state/circuits/setState", payload)
+        elif action.deviceAction == indigo.kDeviceAction.TurnOff:
+            payload = build_circuit_state_payload(circuit_id, False)
+            self._publish(coordinator_id, "state/circuits/setState", payload)
+        elif action.deviceAction == indigo.kDeviceAction.Toggle:
+            new_state = not dev.onState
+            payload = build_circuit_state_payload(circuit_id, new_state)
+            self._publish(coordinator_id, "state/circuits/setState", payload)
 
     # -------------------------------------------------------------------------
     # Helper: find child device
