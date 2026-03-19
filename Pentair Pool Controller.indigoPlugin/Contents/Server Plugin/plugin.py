@@ -17,6 +17,7 @@ try:
 except ImportError:
     PAHO_AVAILABLE = False
 
+from discovery import EquipmentDiscovery
 from handlers.body import process_body_message, build_set_setpoint_payload, build_set_heat_mode_payload
 from handlers.circuit import process_circuit_message, build_circuit_state_payload
 from handlers.pump import process_pump_message, build_set_speed_payload, build_set_program_payload
@@ -37,6 +38,8 @@ class Plugin(indigo.PluginBase):
 
         # Map child devices to their coordinator: {child_dev_id: coordinator_dev_id}
         self.device_coordinator_map = {}
+
+        self.discovery = EquipmentDiscovery(logger=self.logger)
 
     # -------------------------------------------------------------------------
     # Plugin lifecycle
@@ -191,6 +194,13 @@ class Plugin(indigo.PluginBase):
         if len(topic_parts) < 3:
             return
 
+        # Feed all messages to discovery
+        new_equip = self.discovery.process_message(coordinator_dev_id, topic_parts, payload)
+        for equip in new_equip:
+            self.logger.info(
+                f"Discovered {equip['type']}: {equip['name']} (ID {equip['id']})"
+            )
+
         category = topic_parts[1] if len(topic_parts) > 1 else ""
         subcategory = topic_parts[2] if len(topic_parts) > 2 else ""
 
@@ -336,6 +346,24 @@ class Plugin(indigo.PluginBase):
         payload = build_super_chlorinate_payload(chlor_id, enabled)
         self._publish(coordinator_id, "state/chlorinator", payload)
         self.logger.info(f"{'Enabled' if enabled else 'Disabled'} super chlorinate on {dev.name}")
+
+    # -------------------------------------------------------------------------
+    # Menu items
+    # -------------------------------------------------------------------------
+
+    def discoverEquipment(self):
+        self.logger.info("Equipment discovery — listening for MQTT messages...")
+        self.logger.info("Create devices via Indigo's device dialog using the discovered IDs.")
+        for dev_id in self.coordinators:
+            try:
+                dev = indigo.devices[dev_id]
+                self.logger.info(f"Coordinator: {dev.name}")
+                self.logger.info(self.discovery.get_summary(dev_id))
+            except KeyError:
+                pass
+
+    def showDiscoveredEquipment(self):
+        self.discoverEquipment()
 
     # -------------------------------------------------------------------------
     # Helper: find child device

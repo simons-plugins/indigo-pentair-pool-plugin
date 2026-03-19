@@ -1,2 +1,11 @@
 <?xml version="1.0"?>
-<MenuItems/>
+<MenuItems>
+	<MenuItem id="discoverEquipment">
+		<Name>Discover Pool Equipment</Name>
+		<CallbackMethod>discoverEquipment</CallbackMethod>
+	</MenuItem>
+	<MenuItem id="showDiscoveredEquipment">
+		<Name>Show Discovered Equipment</Name>
+		<CallbackMethod>showDiscoveredEquipment</CallbackMethod>
+	</MenuItem>
+</MenuItems>
