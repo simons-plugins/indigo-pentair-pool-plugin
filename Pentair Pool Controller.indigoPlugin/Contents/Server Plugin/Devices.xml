@@ -48,4 +48,34 @@
 			</State>
 		</States>
 	</Device>
+
+	<!-- Pool/Spa Body — thermostat with heating control -->
+	<Device type="thermostat" id="poolBody" allowUserCreation="true">
+		<Name>Pool Body</Name>
+		<ConfigUI>
+			<Field id="controllerId" type="menu">
+				<Label>Pool Controller:</Label>
+				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			</Field>
+			<Field id="bodyId" type="menu" defaultValue="1">
+				<Label>Body:</Label>
+				<List>
+					<Option value="1">Pool</Option>
+					<Option value="2">Spa</Option>
+				</List>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="bodyType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Body Type Changed</TriggerLabel>
+				<ControlPageLabel>Body Type</ControlPageLabel>
+			</State>
+			<State id="heatStatus">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Heat Status Changed</TriggerLabel>
+				<ControlPageLabel>Heat Status</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
 </Devices>

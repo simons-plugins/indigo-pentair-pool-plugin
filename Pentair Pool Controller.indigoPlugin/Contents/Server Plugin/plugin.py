@@ -17,6 +17,8 @@ try:
 except ImportError:
     PAHO_AVAILABLE = False
 
+from handlers.body import process_body_message, build_set_setpoint_payload, build_set_heat_mode_payload
+
 
 class Plugin(indigo.PluginBase):
 
@@ -188,7 +190,50 @@ class Plugin(indigo.PluginBase):
         category = topic_parts[1] if len(topic_parts) > 1 else ""
         subcategory = topic_parts[2] if len(topic_parts) > 2 else ""
 
-        # TODO: Handler routing will be added in subsequent tasks
+        if category == "state":
+            if subcategory == "temps":
+                self._process_body_updates(coordinator_dev_id, topic_parts, payload)
+
+    def _process_body_updates(self, coordinator_dev_id, topic_parts, payload):
+        updates = process_body_message(topic_parts, payload, self.logger)
+        for item in updates:
+            if item[0] == "air_temp":
+                try:
+                    dev = indigo.devices[coordinator_dev_id]
+                    dev.updateStateOnServer("airTemp", item[1])
+                except KeyError:
+                    pass
+                continue
+            body_id, state_updates = item
+            target_dev = self._find_child_device(coordinator_dev_id, "poolBody", "bodyId", str(body_id))
+            if target_dev and state_updates:
+                target_dev.updateStatesOnServer(state_updates)
+
+    # -------------------------------------------------------------------------
+    # Thermostat actions
+    # -------------------------------------------------------------------------
+
+    def actionControlThermostat(self, action, dev):
+        coordinator_id = int(dev.pluginProps.get("controllerId", 0))
+        body_id = dev.pluginProps.get("bodyId", "1")
+
+        if action.thermostatAction == indigo.kThermostatAction.SetHeatSetpoint:
+            new_setpoint = action.actionValue
+            payload = build_set_setpoint_payload(body_id, new_setpoint)
+            self._publish(coordinator_id, "state/body/setPoint", payload)
+            self.logger.info(f"Set {dev.name} heat setpoint to {new_setpoint}")
+
+        elif action.thermostatAction == indigo.kThermostatAction.SetHvacMode:
+            mode_map = {
+                indigo.kHvacMode.Off: 0,
+                indigo.kHvacMode.HeatOn: 1,
+            }
+            njspc_mode = mode_map.get(action.actionValue, 0)
+            payload = build_set_heat_mode_payload(body_id, njspc_mode)
+            self._publish(coordinator_id, "state/body/heatMode", payload)
+
+        elif action.thermostatAction == indigo.kThermostatAction.RequestStatusAll:
+            self.logger.debug(f"Status request for {dev.name} — updated via MQTT")
 
     # -------------------------------------------------------------------------
     # Helper: find child device
