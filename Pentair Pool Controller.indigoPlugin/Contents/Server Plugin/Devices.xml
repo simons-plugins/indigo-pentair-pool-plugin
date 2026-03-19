@@ -196,4 +196,55 @@
 			</State>
 		</States>
 	</Device>
+
+	<!-- Pool Chemistry — IntelliChem readings (read-only sensor) -->
+	<Device type="sensor" id="poolChemistry" allowUserCreation="true">
+		<Name>Pool Chemistry</Name>
+		<ConfigUI>
+			<Field id="controllerId" type="menu">
+				<Label>Pool Controller:</Label>
+				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			</Field>
+			<Field id="chemControllerId" type="textfield" defaultValue="1">
+				<Label>Chemistry Controller ID:</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="pH">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>pH Changed</TriggerLabel>
+				<ControlPageLabel>pH</ControlPageLabel>
+			</State>
+			<State id="pHSetpoint">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>pH Setpoint Changed</TriggerLabel>
+				<ControlPageLabel>pH Setpoint</ControlPageLabel>
+			</State>
+			<State id="orp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>ORP Changed</TriggerLabel>
+				<ControlPageLabel>ORP (mV)</ControlPageLabel>
+			</State>
+			<State id="orpSetpoint">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>ORP Setpoint Changed</TriggerLabel>
+				<ControlPageLabel>ORP Setpoint</ControlPageLabel>
+			</State>
+			<State id="saturationIndex">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Saturation Index Changed</TriggerLabel>
+				<ControlPageLabel>Saturation Index</ControlPageLabel>
+			</State>
+			<State id="acidTankLevel">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Acid Tank Changed</TriggerLabel>
+				<ControlPageLabel>Acid Tank %</ControlPageLabel>
+			</State>
+			<State id="baseTankLevel">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Base Tank Changed</TriggerLabel>
+				<ControlPageLabel>Base Tank %</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
 </Devices>
