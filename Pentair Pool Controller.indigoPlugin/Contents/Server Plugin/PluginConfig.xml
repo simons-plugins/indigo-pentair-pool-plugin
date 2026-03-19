@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<Field id="topLabel" type="label" fontSize="small" fontColor="darkgray">
+		<Label>Pentair Pool Controller connects to nodejs-poolController via MQTT. Create a Pool Controller device to configure the connection.</Label>
+	</Field>
+
+	<Field id="sep1" type="separator"/>
+
+	<Field id="showDebugInfo" type="checkbox" defaultValue="false">
+		<Label>Enable debug logging: </Label>
+	</Field>
+
+	<Field id="logMqtt" type="checkbox" defaultValue="false"
+		visibleBindingId="showDebugInfo" visibleBindingValue="true">
+		<Label>Log all MQTT messages: </Label>
+	</Field>
+
+	<Field id="tempUnits" type="menu" defaultValue="F">
+		<Label>Temperature units:</Label>
+		<List>
+			<Option value="F">Fahrenheit</Option>
+			<Option value="C">Celsius</Option>
+		</List>
+	</Field>
+</PluginConfig>

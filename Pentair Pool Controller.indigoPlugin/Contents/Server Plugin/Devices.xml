@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<Devices>
+	<!-- Pool Controller Coordinator — owns the MQTT connection -->
+	<Device type="custom" id="poolController" allowUserCreation="true">
+		<Name>Pool Controller</Name>
+		<ConfigUI>
+			<Field id="brokerHost" type="textfield" defaultValue="localhost">
+				<Label>MQTT Broker Host:</Label>
+			</Field>
+			<Field id="brokerPort" type="textfield" defaultValue="1883">
+				<Label>MQTT Broker Port:</Label>
+			</Field>
+			<Field id="mqttUsername" type="textfield" defaultValue="">
+				<Label>Username (optional):</Label>
+			</Field>
+			<Field id="mqttPassword" type="textfield" defaultValue="" secure="true">
+				<Label>Password (optional):</Label>
+			</Field>
+			<Field id="sep1" type="separator"/>
+			<Field id="rootTopic" type="textfield" defaultValue="pool">
+				<Label>MQTT Root Topic:</Label>
+			</Field>
+			<Field id="topicHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
+				<Label>The root topic configured in nodejs-poolController (default: "pool").</Label>
+			</Field>
+		</ConfigUI>
+		<UiDisplayStateId>mqttStatus</UiDisplayStateId>
+		<States>
+			<State id="mqttStatus">
+				<ValueType>String</ValueType>
+				<TriggerLabel>MQTT Status Changed</TriggerLabel>
+				<ControlPageLabel>MQTT Status</ControlPageLabel>
+			</State>
+			<State id="controllerType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Controller Type Changed</TriggerLabel>
+				<ControlPageLabel>Controller Type</ControlPageLabel>
+			</State>
+			<State id="airTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Air Temperature Changed</TriggerLabel>
+				<ControlPageLabel>Air Temp</ControlPageLabel>
+			</State>
+			<State id="lastMessage">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Message Changed</TriggerLabel>
+				<ControlPageLabel>Last Message</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+</Devices>
