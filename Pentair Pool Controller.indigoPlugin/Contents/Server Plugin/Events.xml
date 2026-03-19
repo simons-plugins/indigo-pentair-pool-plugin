@@ -1,2 +1,29 @@
 <?xml version="1.0"?>
-<Events/>
+<Events>
+	<Event id="mqttConnected">
+		<Name>MQTT Connected</Name>
+		<ConfigUI>
+			<Field id="eventLabel" type="label">
+				<Label>Triggered when the plugin connects to the MQTT broker.</Label>
+			</Field>
+		</ConfigUI>
+	</Event>
+
+	<Event id="mqttDisconnected">
+		<Name>MQTT Disconnected</Name>
+		<ConfigUI>
+			<Field id="eventLabel" type="label">
+				<Label>Triggered on unexpected MQTT disconnection.</Label>
+			</Field>
+		</ConfigUI>
+	</Event>
+
+	<Event id="equipmentDiscovered">
+		<Name>Equipment Discovered</Name>
+		<ConfigUI>
+			<Field id="eventLabel" type="label">
+				<Label>Triggered when new pool equipment is discovered via MQTT.</Label>
+			</Field>
+		</ConfigUI>
+	</Event>
+</Events>

@@ -163,8 +163,11 @@ class Plugin(indigo.PluginBase):
             dev.updateStateOnServer("mqttStatus", status)
             if status == "connected":
                 dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                indigo.activePlugin.triggerCheck("mqttConnected")
             else:
                 dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+                if msg.get("error"):
+                    indigo.activePlugin.triggerCheck("mqttDisconnected")
         except KeyError:
             pass
 
