@@ -64,4 +64,4 @@ def _extract_circuit_states(circuit, logger=None):
 
 
 def build_circuit_state_payload(circuit_id, is_on):
-    return {"id": int(circuit_id), "isOn": "on" if is_on else "off"}
+    return {"id": int(circuit_id), "isOn": bool(is_on)}
