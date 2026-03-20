@@ -1,27 +1,11 @@
 <?xml version="1.0"?>
 <Devices>
-	<!-- Pool Controller Coordinator — owns the MQTT connection -->
-	<Device type="custom" id="poolController" allowUserCreation="true">
+	<!-- Pool Controller Coordinator — owns the MQTT connection (auto-created) -->
+	<Device type="custom" id="poolController" allowUserCreation="false">
 		<Name>Pool Controller</Name>
 		<ConfigUI>
-			<Field id="brokerHost" type="textfield" defaultValue="localhost">
-				<Label>MQTT Broker Host:</Label>
-			</Field>
-			<Field id="brokerPort" type="textfield" defaultValue="1883">
-				<Label>MQTT Broker Port:</Label>
-			</Field>
-			<Field id="mqttUsername" type="textfield" defaultValue="">
-				<Label>Username (optional):</Label>
-			</Field>
-			<Field id="mqttPassword" type="textfield" defaultValue="" secure="true">
-				<Label>Password (optional):</Label>
-			</Field>
-			<Field id="sep1" type="separator"/>
-			<Field id="rootTopic" type="textfield" defaultValue="pool">
-				<Label>MQTT Root Topic:</Label>
-			</Field>
-			<Field id="topicHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
-				<Label>The root topic configured in nodejs-poolController (default: "pool").</Label>
+			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
+				<Label>This device is managed automatically. Configure MQTT settings in Plugins → Pentair Pool Controller → Configure.</Label>
 			</Field>
 		</ConfigUI>
 		<UiDisplayStateId>mqttStatus</UiDisplayStateId>
@@ -49,20 +33,15 @@
 		</States>
 	</Device>
 
-	<!-- Pool/Spa Body — thermostat with heating control -->
-	<Device type="thermostat" id="poolBody" allowUserCreation="true">
+	<!-- Pool/Spa Body — thermostat with heating control (auto-created) -->
+	<Device type="thermostat" id="poolBody" allowUserCreation="false">
 		<Name>Pool Body</Name>
 		<ConfigUI>
-			<Field id="controllerId" type="menu">
-				<Label>Pool Controller:</Label>
-				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			<Field id="controllerId" type="textfield" hidden="true">
+				<Label>Controller ID:</Label>
 			</Field>
-			<Field id="bodyId" type="menu" defaultValue="1">
-				<Label>Body:</Label>
-				<List>
-					<Option value="1">Pool</Option>
-					<Option value="2">Spa</Option>
-				</List>
+			<Field id="bodyId" type="textfield" hidden="true">
+				<Label>Body ID:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -79,19 +58,15 @@
 		</States>
 	</Device>
 
-	<!-- Pool Circuit — relay on/off for equipment circuits -->
-	<Device type="relay" id="poolCircuit" allowUserCreation="true">
+	<!-- Pool Circuit — relay on/off for equipment circuits (auto-created) -->
+	<Device type="relay" id="poolCircuit" allowUserCreation="false">
 		<Name>Pool Circuit</Name>
 		<ConfigUI>
-			<Field id="controllerId" type="menu">
-				<Label>Pool Controller:</Label>
-				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			<Field id="controllerId" type="textfield" hidden="true">
+				<Label>Controller ID:</Label>
 			</Field>
-			<Field id="circuitId" type="textfield" defaultValue="">
+			<Field id="circuitId" type="textfield" hidden="true">
 				<Label>Circuit ID:</Label>
-			</Field>
-			<Field id="circuitIdHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
-				<Label>The circuit number from nodejs-poolController (e.g. 1, 2, 6).</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -108,15 +83,14 @@
 		</States>
 	</Device>
 
-	<!-- Pool Pump — IntelliFlo variable-speed pump -->
-	<Device type="custom" id="poolPump" allowUserCreation="true">
+	<!-- Pool Pump — IntelliFlo variable-speed pump (auto-created) -->
+	<Device type="custom" id="poolPump" allowUserCreation="false">
 		<Name>Pool Pump</Name>
 		<ConfigUI>
-			<Field id="controllerId" type="menu">
-				<Label>Pool Controller:</Label>
-				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			<Field id="controllerId" type="textfield" hidden="true">
+				<Label>Controller ID:</Label>
 			</Field>
-			<Field id="pumpId" type="textfield" defaultValue="1">
+			<Field id="pumpId" type="textfield" hidden="true">
 				<Label>Pump ID:</Label>
 			</Field>
 		</ConfigUI>
@@ -155,15 +129,14 @@
 		</States>
 	</Device>
 
-	<!-- Pool Chlorinator — IntelliChlor salt chlorinator -->
-	<Device type="custom" id="poolChlorinator" allowUserCreation="true">
+	<!-- Pool Chlorinator — IntelliChlor salt chlorinator (auto-created) -->
+	<Device type="custom" id="poolChlorinator" allowUserCreation="false">
 		<Name>Pool Chlorinator</Name>
 		<ConfigUI>
-			<Field id="controllerId" type="menu">
-				<Label>Pool Controller:</Label>
-				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			<Field id="controllerId" type="textfield" hidden="true">
+				<Label>Controller ID:</Label>
 			</Field>
-			<Field id="chlorinatorId" type="textfield" defaultValue="1">
+			<Field id="chlorinatorId" type="textfield" hidden="true">
 				<Label>Chlorinator ID:</Label>
 			</Field>
 		</ConfigUI>
@@ -197,15 +170,14 @@
 		</States>
 	</Device>
 
-	<!-- Pool Chemistry — IntelliChem readings (read-only sensor) -->
-	<Device type="sensor" id="poolChemistry" allowUserCreation="true">
+	<!-- Pool Chemistry — IntelliChem readings (auto-created) -->
+	<Device type="sensor" id="poolChemistry" allowUserCreation="false">
 		<Name>Pool Chemistry</Name>
 		<ConfigUI>
-			<Field id="controllerId" type="menu">
-				<Label>Pool Controller:</Label>
-				<List class="self" filter="self.poolController" method="getControllerList" dynamicReload="true"/>
+			<Field id="controllerId" type="textfield" hidden="true">
+				<Label>Controller ID:</Label>
 			</Field>
-			<Field id="chemControllerId" type="textfield" defaultValue="1">
+			<Field id="chemControllerId" type="textfield" hidden="true">
 				<Label>Chemistry Controller ID:</Label>
 			</Field>
 		</ConfigUI>

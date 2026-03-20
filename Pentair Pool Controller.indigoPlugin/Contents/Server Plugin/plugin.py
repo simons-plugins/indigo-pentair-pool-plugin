@@ -24,6 +24,15 @@ from handlers.pump import process_pump_message, build_set_speed_payload, build_s
 from handlers.chlorinator import process_chlorinator_message, build_set_output_payload, build_super_chlorinate_payload
 from handlers.chemistry import process_chemistry_message
 
+# Maps discovery equipment type → (deviceTypeId, id_prop_key)
+DEVICE_TYPE_MAP = {
+    "poolBody": ("poolBody", "bodyId"),
+    "poolCircuit": ("poolCircuit", "circuitId"),
+    "poolPump": ("poolPump", "pumpId"),
+    "poolChlorinator": ("poolChlorinator", "chlorinatorId"),
+    "poolChemistry": ("poolChemistry", "chemControllerId"),
+}
+
 
 class Plugin(indigo.PluginBase):
 
@@ -32,6 +41,7 @@ class Plugin(indigo.PluginBase):
         self.debug = pluginPrefs.get("showDebugInfo", False)
         self.logMqtt = pluginPrefs.get("logMqtt", False)
         self.tempUnits = pluginPrefs.get("tempUnits", "F")
+        self.deviceFolderId = int(pluginPrefs.get("deviceFolder", 0))
 
         # Per-coordinator state: {dev_id: {"thread": Thread, "queue": Queue}}
         self.coordinators = {}
@@ -51,6 +61,16 @@ class Plugin(indigo.PluginBase):
             self.logger.error(
                 "paho-mqtt library not found. Ensure it is in the plugin's Packages/ directory."
             )
+            return
+
+        # Auto-create coordinator device if none exists
+        coordinator_exists = False
+        for dev in indigo.devices.iter("self.poolController"):
+            coordinator_exists = True
+            break
+
+        if not coordinator_exists:
+            self._create_coordinator_device()
 
     def shutdown(self):
         self.logger.info("Pentair Pool Controller stopping")
@@ -94,6 +114,87 @@ class Plugin(indigo.PluginBase):
             self.debug = valuesDict.get("showDebugInfo", False)
             self.logMqtt = valuesDict.get("logMqtt", False)
             self.tempUnits = valuesDict.get("tempUnits", "F")
+            self.deviceFolderId = int(valuesDict.get("deviceFolder", 0))
+
+            # Update coordinator device with new MQTT settings
+            for dev in indigo.devices.iter("self.poolController"):
+                new_props = dev.pluginProps
+                new_props["brokerHost"] = valuesDict.get("brokerHost", "localhost")
+                new_props["brokerPort"] = valuesDict.get("brokerPort", "1883")
+                new_props["mqttUsername"] = valuesDict.get("mqttUsername", "")
+                new_props["mqttPassword"] = valuesDict.get("mqttPassword", "")
+                new_props["rootTopic"] = valuesDict.get("rootTopic", "easytouch2-4")
+                dev.replacePluginPropsOnServer(new_props)
+
+                # Restart MQTT connection with new settings
+                self._stop_coordinator(dev.id)
+                dev = indigo.devices[dev.id]  # Refresh after props change
+                self._start_coordinator(dev)
+                break
+
+    # -------------------------------------------------------------------------
+    # Auto-create coordinator device
+    # -------------------------------------------------------------------------
+
+    def _create_coordinator_device(self):
+        try:
+            prefs = self.pluginPrefs
+            props = {
+                "brokerHost": prefs.get("brokerHost", "localhost"),
+                "brokerPort": prefs.get("brokerPort", "1883"),
+                "mqttUsername": prefs.get("mqttUsername", ""),
+                "mqttPassword": prefs.get("mqttPassword", ""),
+                "rootTopic": prefs.get("rootTopic", "easytouch2-4"),
+            }
+            create_kwargs = {
+                "protocol": indigo.kProtocol.Plugin,
+                "deviceTypeId": "poolController",
+                "name": "Pool Controller",
+                "props": props,
+            }
+            if self.deviceFolderId:
+                create_kwargs["folder"] = self.deviceFolderId
+            dev = indigo.device.create(**create_kwargs)
+            dev.updateStateOnServer("mqttStatus", "disconnected")
+            dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+            self.logger.info(f"Auto-created Pool Controller device: {dev.name}")
+        except Exception as err:
+            self.logger.error(f"Error creating coordinator device: {err}")
+
+    # -------------------------------------------------------------------------
+    # Auto-create child devices
+    # -------------------------------------------------------------------------
+
+    def _auto_create_device(self, coordinator_dev_id, equip_type, equip_id, equip_name):
+        """Auto-create an Indigo device for discovered pool equipment."""
+        if equip_type not in DEVICE_TYPE_MAP:
+            return
+
+        device_type_id, id_prop_key = DEVICE_TYPE_MAP[equip_type]
+
+        # Check if device already exists
+        existing = self._find_child_device(coordinator_dev_id, device_type_id, id_prop_key, str(equip_id))
+        if existing:
+            return
+
+        try:
+            props = {
+                "controllerId": str(coordinator_dev_id),
+                id_prop_key: str(equip_id),
+            }
+            create_kwargs = {
+                "protocol": indigo.kProtocol.Plugin,
+                "deviceTypeId": device_type_id,
+                "name": equip_name,
+                "props": props,
+            }
+            if self.deviceFolderId:
+                create_kwargs["folder"] = self.deviceFolderId
+            new_dev = indigo.device.create(**create_kwargs)
+            self.device_coordinator_map[new_dev.id] = coordinator_dev_id
+            self.logger.info(f"Auto-created {equip_type} device: {equip_name} (ID {equip_id})")
+        except Exception as err:
+            self.logger.error(f"Error creating {equip_type} device '{equip_name}': {err}")
 
     # -------------------------------------------------------------------------
     # Coordinator management
@@ -115,7 +216,7 @@ class Plugin(indigo.PluginBase):
             broker_port=props.get("brokerPort", 1883),
             username=props.get("mqttUsername", ""),
             password=props.get("mqttPassword", ""),
-            root_topic=props.get("rootTopic", "pool"),
+            root_topic=props.get("rootTopic", "easytouch2-4"),
             message_queue=msg_queue,
             logger=self.logger
         )
@@ -123,7 +224,7 @@ class Plugin(indigo.PluginBase):
         self.coordinators[dev_id] = {
             "thread": thread,
             "queue": msg_queue,
-            "root_topic": props.get("rootTopic", "pool")
+            "root_topic": props.get("rootTopic", "easytouch2-4")
         }
 
         dev.updateStateOnServer("mqttStatus", "connecting")
@@ -197,11 +298,11 @@ class Plugin(indigo.PluginBase):
         if len(topic_parts) < 3:
             return
 
-        # Feed all messages to discovery
+        # Feed all messages to discovery and auto-create devices
         new_equip = self.discovery.process_message(coordinator_dev_id, topic_parts, payload)
         for equip in new_equip:
-            self.logger.info(
-                f"Discovered {equip['type']}: {equip['name']} (ID {equip['id']})"
+            self._auto_create_device(
+                coordinator_dev_id, equip["type"], equip["id"], equip["name"]
             )
 
         category = topic_parts[1] if len(topic_parts) > 1 else ""
@@ -380,8 +481,7 @@ class Plugin(indigo.PluginBase):
     # -------------------------------------------------------------------------
 
     def discoverEquipment(self):
-        self.logger.info("Equipment discovery — listening for MQTT messages...")
-        self.logger.info("Create devices via Indigo's device dialog using the discovered IDs.")
+        self.logger.info("Discovered equipment (devices are created automatically):")
         for dev_id in self.coordinators:
             try:
                 dev = indigo.devices[dev_id]
@@ -412,6 +512,14 @@ class Plugin(indigo.PluginBase):
         for dev in indigo.devices.iter("self.poolController"):
             controllers.append((str(dev.id), dev.name))
         return controllers
+
+    def getDeviceFolderList(self, filter="", valuesDict=None, typeId="", targetId=0):
+        """Return list of device folders for config UI."""
+        folder_list = [(0, "-- No Folder --")]
+        for folder in indigo.devices.folders:
+            folder_list.append((folder.id, folder.name))
+        folder_list.sort(key=lambda x: x[1].lower() if x[0] != 0 else "")
+        return folder_list
 
     # -------------------------------------------------------------------------
     # MQTT publishing helper

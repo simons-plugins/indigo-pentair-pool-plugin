@@ -1,18 +1,53 @@
 <?xml version="1.0"?>
 <PluginConfig>
 	<Field id="topLabel" type="label" fontSize="small" fontColor="darkgray">
-		<Label>Pentair Pool Controller connects to nodejs-poolController via MQTT. Create a Pool Controller device to configure the connection.</Label>
+		<Label>Pentair Pool Controller connects to nodejs-poolController via MQTT. Configure the broker connection below — pool equipment devices will be created automatically.</Label>
+	</Field>
+
+	<Field id="sep0" type="separator"/>
+
+	<Field id="brokerLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>MQTT Broker</Label>
+	</Field>
+
+	<Field id="brokerHost" type="textfield" defaultValue="localhost">
+		<Label>Broker Host:</Label>
+	</Field>
+
+	<Field id="brokerPort" type="textfield" defaultValue="1883">
+		<Label>Broker Port:</Label>
+	</Field>
+
+	<Field id="mqttUsername" type="textfield" defaultValue="">
+		<Label>Username (optional):</Label>
+	</Field>
+
+	<Field id="mqttPassword" type="textfield" defaultValue="" secure="true">
+		<Label>Password (optional):</Label>
 	</Field>
 
 	<Field id="sep1" type="separator"/>
 
-	<Field id="showDebugInfo" type="checkbox" defaultValue="false">
-		<Label>Enable debug logging: </Label>
+	<Field id="poolLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Pool Controller</Label>
 	</Field>
 
-	<Field id="logMqtt" type="checkbox" defaultValue="false"
-		visibleBindingId="showDebugInfo" visibleBindingValue="true">
-		<Label>Log all MQTT messages: </Label>
+	<Field id="rootTopic" type="textfield" defaultValue="easytouch2-4">
+		<Label>MQTT Root Topic:</Label>
+	</Field>
+	<Field id="topicHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
+		<Label>The root topic from your nodejs-poolController config. Common values: easytouch2-4, easytouch2-8, intellitouch, intellicenter. Check your nodejs-poolController dashboard or MQTT Explorer to find yours.</Label>
+	</Field>
+
+	<Field id="sep2" type="separator"/>
+
+	<Field id="settingsLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Settings</Label>
+	</Field>
+
+	<Field id="deviceFolder" type="menu" defaultValue="0">
+		<Label>Create devices in folder:</Label>
+		<List class="self" filter="" method="getDeviceFolderList" dynamicReload="true"/>
 	</Field>
 
 	<Field id="tempUnits" type="menu" defaultValue="F">
@@ -21,5 +56,16 @@
 			<Option value="F">Fahrenheit</Option>
 			<Option value="C">Celsius</Option>
 		</List>
+	</Field>
+
+	<Field id="sep3" type="separator"/>
+
+	<Field id="showDebugInfo" type="checkbox" defaultValue="false">
+		<Label>Enable debug logging: </Label>
+	</Field>
+
+	<Field id="logMqtt" type="checkbox" defaultValue="false"
+		visibleBindingId="showDebugInfo" visibleBindingValue="true">
+		<Label>Log all MQTT messages: </Label>
 	</Field>
 </PluginConfig>
