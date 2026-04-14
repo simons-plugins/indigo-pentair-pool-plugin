@@ -193,6 +193,7 @@ class Plugin(indigo.PluginBase):
             new_dev = indigo.device.create(**create_kwargs)
             self.device_coordinator_map[new_dev.id] = coordinator_dev_id
             self.logger.info(f"Auto-created {equip_type} device: {equip_name} (ID {equip_id})")
+            indigo.activePlugin.triggerCheck("equipmentDiscovered")
         except Exception as err:
             self.logger.error(f"Error creating {equip_type} device '{equip_name}': {err}")
 
